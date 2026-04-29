@@ -197,7 +197,7 @@ output {
   }
 }
 ```
-![TASK_3](img\Screenshot_6.png)
+![TASK_3](img/Screenshot_6.png)
 
 ### Задание 4
 
@@ -206,5 +206,5 @@ output {
 Приведите скриншот интерфейса Kibana, на котором видны логи Nginx, которые были отправлены через Filebeat.`
 ### Ответ
 
-![TASK_4](img\Screenshot_7.png)
+![TASK_4](img/Screenshot_7.png)
 
