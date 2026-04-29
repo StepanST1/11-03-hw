@@ -49,7 +49,7 @@ services:
 ```
 
 
-![TASK_1](img\Screenshot_4)
+![TASK_1](img/Screenshot_4.png)
 
 
 ---
@@ -88,7 +88,7 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200 
 ```
 
-![TASK_2](img/Screenshot_5)
+![TASK_2](img/Screenshot_5.png)
 
 
 ---
@@ -197,7 +197,7 @@ output {
   }
 }
 ```
-![TASK_3](img\Screenshot_6)
+![TASK_3](img\Screenshot_6.png)
 
 ### Задание 4
 
