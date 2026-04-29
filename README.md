@@ -88,7 +88,7 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200 
 ```
 
-![TASK_2](img\Screenshot_5)
+![TASK_2](img/Screenshot_5)
 
 
 ---
