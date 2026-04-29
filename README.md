@@ -130,7 +130,7 @@ services:
       XPACK_MONITORING_ENABLED: "false"
       ES_HOST: "elasticsearch:9200"
     ports:
-      - "5000:5000"
+      - "5044:5044"
     volumes:
       - ./logs:/var/log/nginx:ro
       - ./configs/logstash/pipelines:/usr/share/logstash/pipeline:ro
