@@ -1,4 +1,4 @@
-# Домашнее задание к занятию "`Название занятия`" - `Фамилия и имя студента`
+# Домашнее задание к занятию "`ELK`" - `Манукян Степан`
 
 
 ### Инструкция по выполнению домашнего задания
@@ -24,94 +24,187 @@
 
 ### Задание 1
 
-`Приведите ответ в свободной форме........`
+`Задание 1. Elasticsearch
+Установите и запустите Elasticsearch, после чего поменяйте параметр cluster_name на случайный.
+Приведите скриншот команды 'curl -X GET 'localhost:9200/_cluster/health?pretty', сделанной на сервере с установленным Elasticsearch. Где будет виден нестандартный cluster_name.`
 
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
+### Ответ
 
 ```
-Поле для вставки кода...
-....
-....
-....
-....
+docker-compose
+
+version: "3.9"
+services:
+  elasticsearch:
+    image: elasticsearch:8.14.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.name=elk-test-01
+    ports:
+       - 9200:9200
+    volumes:
+       - ./deploy/esdata:/usr/share/elasticsearch/data
+
 ```
 
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота 1](ссылка на скриншот 1)`
+
+![TASK_1](img\Screenshot_4)
 
 
 ---
 
 ### Задание 2
 
-`Приведите ответ в свободной форме........`
+`Задание 2. Kibana
+Установите и запустите Kibana.
+Приведите скриншот интерфейса Kibana на странице http://<ip вашего сервера>:5601/app/dev_tools#/console, где будет выполнен запрос GET /_cluster/health?pretty.`
 
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
+### Ответ
 
 ```
-Поле для вставки кода...
-....
-....
-....
-....
+docker-compose
+
+version: "3.9"
+services:
+  elasticsearch:
+    image: elasticsearch:8.14.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.name=elk-test-01
+    ports:
+       - 9200:9200
+    volumes:
+       - ./deploy/esdata:/usr/share/elasticsearch/data
+
+  kibana:
+    image: kibana:8.14.3
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200 
 ```
 
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота 2](ссылка на скриншот 2)`
+![TASK_2](img\Screenshot_5)
 
 
 ---
 
 ### Задание 3
 
-`Приведите ответ в свободной форме........`
+`Задание 3. Logstash
+Установите и запустите Logstash и Nginx. С помощью Logstash отправьте access-лог Nginx в Elasticsearch.
+Приведите скриншот интерфейса Kibana, на котором видны логи Nginx.`
 
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
+### Ответ
 
 ```
-Поле для вставки кода...
-....
-....
-....
-....
-```
+version: "3.9"
+services:
+  elasticsearch:
+    image: elasticsearch:8.14.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.name=elk-test-01
+    ports:
+       - 9200:9200
+    volumes:
+       - ./deploy/esdata:/usr/share/elasticsearch/data
 
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота](ссылка на скриншот)`
+  kibana:
+    image: kibana:8.14.3
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200 
+
+  logstash:
+    image: logstash:8.14.3
+    environment:
+      XPACK_MONITORING_ENABLED: "false"
+      ES_HOST: "elasticsearch:9200"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/var/log/nginx:ro
+      - ./configs/logstash/pipelines:/usr/share/logstash/pipeline:ro
+    depends_on:
+          - elasticsearch
+  
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./logs:/var/log/nginx
+    restart: always
+```
+Nginx.conf
+```
+input {
+  file {
+    path => "/var/log/nginx/access.log"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    codec => "plain"
+  }
+}
+
+filter {
+  grok {
+    match => { 
+      "message" => "%{IPORHOST:client_ip} - %{USER:remote_user} \[%{HTTPDATE:timestamp}\] \"%{WORD:method} %{URIPATHPARAM:request} HTTP/%{NUMBER:http_version}\" %{NUMBER:response_code} %{NUMBER:bytes_sent} \"%{DATA:referrer}\" \"%{DATA:user_agent}\""
+    }
+  }
+  
+  date {
+    match => [ "timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+    target => "@timestamp"
+  }
+  
+  mutate {
+    convert => {
+      "response_code" => "integer"
+      "bytes_sent" => "integer"
+    }
+  }
+  
+  geoip {
+    source => "client_ip"
+    target => "geoip"
+  }
+  
+  useragent {
+    source => "user_agent"
+    target => "user_agent_parsed"
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["elasticsearch:9200"]
+    index => "nginx-logs-%{+YYYY.MM.dd}"
+  }
+  
+  stdout {
+    codec => rubydebug
+  }
+}
+```
+![TASK_3](img\Screenshot_6)
 
 ### Задание 4
 
-`Приведите ответ в свободной форме........`
+`Задание 4. Filebeat.
+Установите и запустите Filebeat. Переключите поставку логов Nginx с Logstash на Filebeat.
+Приведите скриншот интерфейса Kibana, на котором видны логи Nginx, которые были отправлены через Filebeat.`
+### Ответ
 
-1. `Заполните здесь этапы выполнения, если требуется ....`
-2. `Заполните здесь этапы выполнения, если требуется ....`
-3. `Заполните здесь этапы выполнения, если требуется ....`
-4. `Заполните здесь этапы выполнения, если требуется ....`
-5. `Заполните здесь этапы выполнения, если требуется ....`
-6. 
+![TASK_4](img\Screenshot_7.png)
 
-```
-Поле для вставки кода...
-....
-....
-....
-....
-```
-
-`При необходимости прикрепитe сюда скриншоты
-![Название скриншота](ссылка на скриншот)`
